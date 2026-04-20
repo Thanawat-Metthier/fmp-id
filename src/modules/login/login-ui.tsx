@@ -99,7 +99,7 @@ export const renderLogin = (ci?: CiObject | any, errorMessage?: string, loginCha
               </div>
             </div>
 
-            {errorMessage && <div class="error-message">{errorMessage}</div>}
+            {errorMessage && <div id="errorMessage" class="error-message">{errorMessage}</div>}
 
             <button type="submit" class="login-btn" id="loginBtn">Login</button>
           </form>
@@ -109,7 +109,9 @@ export const renderLogin = (ci?: CiObject | any, errorMessage?: string, loginCha
           const usernameInput = document.getElementById('username');
           const passwordInput = document.getElementById('password');
           const loginBtn = document.getElementById('loginBtn');
+          const errorMsg = document.getElementById('errorMessage');
           const themeColor = "${primaryColor}";
+          
           function updateBtnState() {
               if (usernameInput.value.trim() !== '' && passwordInput.value.trim() !== '') {
                   loginBtn.style.backgroundColor = themeColor;
@@ -119,8 +121,21 @@ export const renderLogin = (ci?: CiObject | any, errorMessage?: string, loginCha
                   loginBtn.style.cursor = 'default';
               }
           }
-          usernameInput.addEventListener('input', updateBtnState);
-          passwordInput.addEventListener('input', updateBtnState);
+
+          function clearError() {
+              if (errorMsg) {
+                  errorMsg.style.display = 'none';
+              }
+          }
+
+          usernameInput.addEventListener('input', () => {
+              updateBtnState();
+              clearError();
+          });
+          passwordInput.addEventListener('input', () => {
+              updateBtnState();
+              clearError();
+          });
         `}</script>
       </body>
     </html>

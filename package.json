@@ -18,6 +18,8 @@
     "drizzle-orm": "^0.45.2",
     "drizzle-typebox": "^0.3.3",
     "elysia": "latest",
+    "ioredis": "^5.10.1",
+    "jwt-decode": "^4.0.0",
     "pg": "^8.20.0"
   },
   "devDependencies": {

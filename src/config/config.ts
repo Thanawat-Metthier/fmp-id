@@ -8,7 +8,14 @@ interface AppConfig {
   isProduction: boolean;
   isDevelopment: boolean;
   isTest: boolean;
-  frontendUrl: string;
+
+  frontendCallbackUrl: string;
+  redis: {
+    host: string;
+    port: number;
+    password?: string;
+    db: number;
+  };
   db: {
     core: {
       writerName: string;
@@ -30,6 +37,7 @@ interface AppConfig {
     clientId: string;
     clientSecret: string;
     redirectUri: string;
+    rememberFor: number;
   };
 }
 
@@ -50,7 +58,14 @@ function getEnvAsNumber(key: string, defaultValue: number): number {
 export const config: AppConfig = {
   port: getEnvAsNumber('PORT', 3000),
   nodeEnv: (getOptionalEnv('NODE_ENV', 'development') as AppConfig['nodeEnv']) || 'development',
-  frontendUrl: getOptionalEnv('FRONTEND_URL', 'http://localhost:5173'),
+
+  frontendCallbackUrl: getOptionalEnv('FRONTEND_CALLBACK_URL', 'http://localhost:5173/callback'),
+  redis: {
+    host: getOptionalEnv('REDIS_HOST', 'localhost'),
+    port: getEnvAsNumber('REDIS_PORT', 6379),
+    password: getOptionalEnv('REDIS_PASSWORD') || undefined,
+    db: getEnvAsNumber('REDIS_DB', 0),
+  },
   get isProduction() {
     return this.nodeEnv === 'production';
   },
@@ -81,6 +96,7 @@ export const config: AppConfig = {
     clientId: getOptionalEnv('HYDRA_CLIENT_ID', ''),
     clientSecret: getOptionalEnv('HYDRA_CLIENT_SECRET', ''),
     redirectUri: getOptionalEnv('HYDRA_REDIRECT_URI', 'http://localhost:3000/callback'),
+    rememberFor: getEnvAsNumber('HYDRA_REMEMBER_FOR', 3600),
   },
 };
 

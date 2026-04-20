@@ -1,4 +1,4 @@
-import { t, Static } from 'elysia';
+import { Static, t } from 'elysia';
 
 // ─── Session / Cookie ──────────────────────────────────────────────────────────
 
@@ -38,3 +38,10 @@ export const LoginQuery = t.Object({
   login_challenge: t.Optional(t.String()),
 });
 export type LoginQuery = Static<typeof LoginQuery>;
+
+export interface LoginResponse {
+  success: boolean;
+  redirectTo: string;
+  message: string;
+  error: unknown;
+}

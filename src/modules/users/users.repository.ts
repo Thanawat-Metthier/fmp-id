@@ -35,6 +35,11 @@ export abstract class UserRepository {
     if (params?.username) {
       filters.push(eq(users.username, params.username));
     }
+
+    if (params?.userType) {
+      filters.push(eq(users.userType, params.userType));
+    }
+
     if (params?.isActive !== undefined && params?.isActive !== null) {
       filters.push(eq(users.isActive, params.isActive));
     }

@@ -7,32 +7,42 @@ import { CustomerParams, LoginBody, LoginQuery, PathParams, WorkspaceParams } fr
 export const loginRoutes = new Elysia({ name: 'module.login' })
   // ─── Root (GET /) ─────────────────────────────────────────────────────────────
   .get('/', async ({ cookie, redirect, query }) => {
-    await LoginHandler.handleRootLogin(cookie);
-    const queryString = query.login_challenge ? `?login_challenge=${query.login_challenge}` : '';
-    return redirect(`/login${queryString}`);
+    const redirectLoginUrl = await LoginHandler.handleRootLogin(cookie);
+    const queryString = query.login_challenge ? `&login_challenge=${query.login_challenge}` : '';
+
+    return redirect(`${redirectLoginUrl}${queryString}`);
   }, { query: LoginQuery })
   .use(html())
-  .get('/login', async ({ cookie, query }) => {
-    const ci = await LoginHandler.handleLogin(cookie);
-    return renderLogin(ci, undefined, query.login_challenge);
-  }, { query: LoginQuery })
-  .post('/login', async ({ body, cookie, query }) => {
-    const isSuccess = await LoginHandler.handleSubmitLogin(body, cookie);
+  .get('/login', async ({ cookie, query: { login_challenge } }) => {
 
-    if (isSuccess) {
-      const frontendUrl = `https://user-stg.metthier.ai/samco/saleorder/saleorder?success=true&login_challenge=${query.login_challenge || ''}`;
-      return redirect(frontendUrl);
+    if (!login_challenge) {
+      return redirect(`/`);
     }
 
     const ci = await LoginHandler.handleLogin(cookie);
-    return renderLogin(ci, "Username หรือ Password ไม่ถูกต้อง", query.login_challenge);
+    return renderLogin(ci, undefined, login_challenge);
+  }, { query: LoginQuery })
+  .post('/login', async ({ body, cookie, query: { login_challenge } }) => {
+
+    if (!login_challenge) {
+      return redirect(`/`);
+    }
+
+    const response = await LoginHandler.handleSubmitLogin(body, login_challenge, cookie);
+
+    if (!response.success) {
+      const ci = await LoginHandler.handleLogin(cookie);
+      return renderLogin(ci, response.message, login_challenge);
+    }
+
+    return redirect(response.redirectTo);
   }, { body: LoginBody, query: LoginQuery })
   .get(
     '/ws/:workspace',
     async ({ params: { workspace }, query, cookie, redirect }) => {
       const redirectLoginUrl = await LoginHandler.handleWorkspaceLogin(workspace, cookie); // id_workspace
       const queryString = query.login_challenge ? `&login_challenge=${query.login_challenge}` : '';
-      
+
       return redirect(`${redirectLoginUrl}${queryString}`);
     },
     { params: WorkspaceParams, query: LoginQuery },

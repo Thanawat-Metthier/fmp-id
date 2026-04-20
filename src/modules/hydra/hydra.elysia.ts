@@ -1,14 +1,25 @@
-import { Elysia } from 'elysia';
+import { Elysia, redirect } from 'elysia';
+import config from '@/config/config';
 import { HydraHandler } from './hydra.handler';
-import { CallbackQuery } from './hydra.model';
+import { CallbackQuery, ConsentQuery } from './hydra.model';
 
 export const hydraRoutes = new Elysia({ name: 'id.hydra.routes' })
   .get(
     '/callback',
-    async ({ query: { code } }) => {
-      const result = await HydraHandler.handleCallback(code);
-      // TODO: Exchange code with Hydra token endpoint → create said session
-      return result;
+    async ({ query: { code }, cookie: { ssid }, redirect, request }) => {
+      const domain = new URL(request.url).hostname;
+
+      await HydraHandler.handleCallback(code, ssid, domain);
+
+      return redirect(config.frontendCallbackUrl, 302);
     },
     { query: CallbackQuery },
-  );
+  )
+  .get(
+    '/consent',
+    async ({ query: { consent_challenge } }) => {
+      const redirectTo = await HydraHandler.handleConsent(consent_challenge);
+      return redirect(redirectTo);
+    },
+    { query: ConsentQuery },
+  )

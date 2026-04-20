@@ -21,7 +21,6 @@ export abstract class UserService {
    */
   static async findOne(params: FindUserParams, tx?: PgTx): Promise<User | undefined> {
     try {
-      console.log('UserService.findOne', params);
       return await UserRepository.findOne(params, tx);
     } catch (error) {
       log.error('UserService.findOne', error);

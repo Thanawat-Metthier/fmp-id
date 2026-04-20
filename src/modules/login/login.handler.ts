@@ -4,19 +4,25 @@ import { LoginRouteService } from '@/modules/login-routes/login-routes.service';
 import { CiObject } from '@/db/schema/core';
 import { HydraService } from '@/modules/hydra/hydra.service';
 import { LoginService } from '@/modules/login/login.service';
+import { FindUserParams } from '@/modules/users/users.model';
 import { UserService } from '@/modules/users/users.service';
 import { Cookie } from 'elysia';
-import { LoginBody } from './login.model';
+import { LoginBody, LoginResponse } from './login.model';
 import { LoginCookieUtils } from './login.utils';
 
 // ─── LoginHandler ────────────────────────────────────────────────────────────────
 
 export abstract class LoginHandler {
 
-  static async handleRootLogin(cookie: Record<string, Cookie<unknown>>) {
+  static async handleRootLogin(cookie: Record<string, Cookie<unknown>>): Promise<string> {
     try {
 
       LoginCookieUtils.remove(cookie);
+
+
+      const hydraLoginUrl = await HydraService.buildAuthorizationUrl();
+
+      return hydraLoginUrl;
 
     } catch (error) {
       log.error('LoginHandler.handleRootLogin', error);
@@ -44,7 +50,7 @@ export abstract class LoginHandler {
 
       LoginCookieUtils.set(cookie, user.workspace, user.customer);
 
-      const hydraLoginUrl = await HydraService.getHydraLoginUrl(workspace);
+      const hydraLoginUrl = await HydraService.buildAuthorizationUrl(workspace);
 
       return hydraLoginUrl;
     } catch (error) {
@@ -64,7 +70,7 @@ export abstract class LoginHandler {
 
       LoginCookieUtils.set(cookie, user.workspace, user.customer);
 
-      const hydraLoginUrl = await HydraService.getHydraLoginUrl(workspace);
+      const hydraLoginUrl = await HydraService.buildAuthorizationUrl(workspace);
 
       return hydraLoginUrl;
     } catch (error) {
@@ -95,38 +101,63 @@ export abstract class LoginHandler {
     }
   }
 
-  static async handleSubmitLogin(body: LoginBody, cookie: Record<string, Cookie<unknown>>): Promise<boolean> {
+  static async handleSubmitLogin(body: LoginBody, loginChallenge: string, cookie: Record<string, Cookie<unknown>>): Promise<LoginResponse> {
     try {
+
+      const response: LoginResponse = {
+        success: true,
+        redirectTo: '',
+        message: 'success',
+        error: undefined
+      }
 
       const { workspace, customer } = LoginCookieUtils.get(cookie);
       const { username, password } = body;
 
-      console.log('handleSubmitLogin')
-      console.log('workspace', workspace)
-      console.log('customer', customer)
-      console.log('username', username)
-      console.log('password', password)
-
-      // 1. ค้นหา User จาก username และ workspace/customer โดยไม่ต้องใช้ password ในฟิลเตอร์
-      const user = await UserService.findOne({ 
-        workspace: workspace || null, 
-        customer: customer || null, 
-        username, 
-        isActive: true 
-      });
-
-      console.log('user found:', user ? 'yes' : 'no')
-
-      if (!user || !user.password) {
-        return false;
+      const userFilter: FindUserParams = {
+        username,
+        isActive: true
       }
 
-      // 2. ตรวจสอบรหัสผ่านด้วย bcrypt (Bun มี built-in bcrypt verification)
-      const isMatch = await Bun.password.verify(password, user.password);
-      
-      console.log('password match:', isMatch)
+      const isRoleAdmin = !workspace && !customer;
+      const isRoleUser = workspace && !customer;
+      const isRoleCustomer = workspace && customer;
 
-      return isMatch;
+      if (isRoleAdmin) {
+        userFilter.userType = "A";
+      }
+      if (isRoleUser) {
+        userFilter.userType = "U";
+        userFilter.workspace = workspace;
+        userFilter.customer = null;
+      }
+      if (isRoleCustomer) {
+        userFilter.userType = "C";
+        userFilter.workspace = workspace;
+        userFilter.customer = customer;
+      }
+
+      const user = await UserService.findOne(userFilter);
+
+      if (!user) {
+        response.success = false;
+        response.message = "Username หรือ Password ไม่ถูกต้อง";
+        response.error = "user not found";
+        return response;
+      }
+
+      const isMatch = await Bun.password.verify(password, user?.password ?? '');
+
+      if (!isMatch) {
+        response.success = false;
+        response.message = "Username หรือ Password ไม่ถูกต้อง";
+        response.error = "password not match";
+        return response;
+      }
+
+      const redirectTo = await HydraService.acceptLoginChallenge(user, loginChallenge);
+      response.redirectTo = redirectTo;
+      return response;
     } catch (error) {
       log.error('LoginHandler.handleSubmitLogin', error);
       throw error;

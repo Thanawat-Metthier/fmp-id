@@ -1,5 +1,6 @@
 import config from '@/config/config';
 import { log } from '@/libs/logger.lib';
+import { SessionUtil } from '@/utils/session.util';
 import { Cookie, status } from 'elysia';
 import { HydraService } from './hydra.service';
 
@@ -18,8 +19,8 @@ export abstract class HydraHandler {
       const oauthResponse = await HydraService.exchangeCodeForToken(code);
       console.log('oauthResponse', oauthResponse)
       // Store tokens in Redis and get session ID
-      const sessionId = await HydraService.createSessionId();
-      await HydraService.createSession(sessionId, oauthResponse);
+      const sessionId = await SessionUtil.createSessionId();
+      await SessionUtil.createSession(sessionId, oauthResponse);
 
       // Set the session cookie
       ssid.set({

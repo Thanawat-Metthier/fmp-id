@@ -10,6 +10,7 @@ interface AppConfig {
   isTest: boolean;
 
   frontendCallbackUrl: string;
+  authTokenIdleExpire: number;
   redis: {
     host: string;
     port: number;
@@ -60,6 +61,7 @@ export const config: AppConfig = {
   nodeEnv: (getOptionalEnv('NODE_ENV', 'development') as AppConfig['nodeEnv']) || 'development',
 
   frontendCallbackUrl: getOptionalEnv('FRONTEND_CALLBACK_URL', 'http://localhost:5173/callback'),
+  authTokenIdleExpire: getEnvAsNumber('AUTH_TOKEN_IDLE_EXPIRE', 60),
   redis: {
     host: getOptionalEnv('REDIS_HOST', 'localhost'),
     port: getEnvAsNumber('REDIS_PORT', 6379),

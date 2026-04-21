@@ -73,12 +73,6 @@ export const renderLogin = (ci?: CiObject | any, errorMessage?: string, loginCha
             <div class="logo-circle-deco-2"></div>
             <div class="logo-content">
               {logoUrl ? <img src={logoUrl} alt="Logo" style="max-height: 150px; max-width: 150px; z-index: 10; object-fit: contain;" /> : defaultLogoSvg}
-              {!logoUrl && (
-                <div style="display:flex; flex-direction:column; justify-content:center;">
-                  <div style={`font-size:22px; color:${textColor}; letter-spacing:-0.5px; font-weight: 500; font-family: '${fontFamily}', sans-serif;`}>{defaultBrandName}</div>
-                  <div style={`font-size:7px; color:${subTextColor}; letter-spacing:1.5px; margin-top:2px; font-weight:700;`}>{defaultSlogan}</div>
-                </div>
-              )}
             </div>
           </div>
 

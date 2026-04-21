@@ -160,58 +160,5 @@ export abstract class HydraService {
     }
   }
 
-  /**
-   * Generates a unique session ID.
-   * Mirrors SessionService.createSessionId from fmp-api-gateway.
-   */
-  static async createSessionId(): Promise<string> {
-    const prefix = 'session:ssid';
-    const uuid = crypto.randomUUID();
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const randomValues = crypto.getRandomValues(new Uint8Array(32));
-    const random32 = Array.from(randomValues)
-      .map((b) => chars.charAt(b % chars.length))
-      .join('');
 
-    const counter = await RedisService.increment('session_id_counter');
-    const cyclingCounter = (counter % 100).toString().padStart(2, '0');
-
-    return `${prefix}_${uuid}_${random32}_${cyclingCounter}`;
-  }
-
-  /**
-   * Stores OAuth token response in Redis as the user's session.
-   * Mirrors SessionService.createSession from fmp-api-gateway.
-   */
-  static async createSession(sessionId: string, oauthToken: OAuthTokenResponse): Promise<void> {
-    try {
-
-      if (!oauthToken?.id_token) {
-        throw status(500, 'OAuth token missing');
-      }
-      const payload = jwtDecode<IdTokenPayload>(oauthToken.id_token);
-      const userId = Number(payload.sub);
-      const user = await UserService.findOne({ id: userId });
-
-      if (!user) {
-        throw status(404, 'User not found');
-      }
-
-      const now = Date.now();
-      const sessionData: SessionData = {
-        ...oauthToken,
-        issued_at: now,
-        last_activity: now,
-        user,
-        v: 2,
-      };
-
-      // 7 days TTL
-      await RedisService.set(sessionId, sessionData, 60 * 60 * 24 * 7);
-      log.info('✅ [HydraService.createSession] Session stored', { sessionId });
-    } catch (error) {
-      log.error('HydraService.createSession', error);
-      throw error;
-    }
-  }
 }

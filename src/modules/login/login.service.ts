@@ -6,15 +6,10 @@ import { log } from "@/libs/logger.lib";
 import { CiService } from "@/modules/ci/ci.service";
 import { PgTx } from "@/types/database";
 
-export type ResolvedSession = {
-  workspace?: string;
-  customer?: string;
-};
-
 // ─── LoginService ───────────────────────────────────────────────────────────────
 
 export abstract class LoginService {
-  static async getLoginCi(workspace?: string, customer?: string, tx?: PgTx): Promise<SelectCiSchema | undefined> {
+  static async getLoginCi(workspace?: string, customer?: string): Promise<SelectCiSchema | undefined> {
     try {
 
       if (customer) {

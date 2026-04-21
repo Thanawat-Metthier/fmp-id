@@ -8,7 +8,9 @@
     "db:migrate": "bun drizzle-kit migrate",
     "db:pull": "bun drizzle-kit pull",
     "db:studio": "bun drizzle-kit studio",
-    "db:seed": "bun run src/db/seed.ts"
+    "db:seed": "bun run src/db/seed.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "bun run typecheck && bun build ./src/index.tsx --outdir ./dist --target bun"
   },
   "dependencies": {
     "@elysiajs/html": "^1.4.0",
@@ -25,7 +27,8 @@
   "devDependencies": {
     "@types/pg": "^8.20.0",
     "bun-types": "latest",
-    "drizzle-kit": "^0.31.10"
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^5.4.5"
   },
   "module": "src/index.js"
 }

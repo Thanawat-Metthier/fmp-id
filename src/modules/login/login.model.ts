@@ -1,15 +1,5 @@
 import { Static, t } from 'elysia';
 
-// ─── Session / Cookie ──────────────────────────────────────────────────────────
-
-export const SessionCookie = t.Object({
-  said: t.Optional(t.String()),
-  workspace: t.Optional(t.String()),
-  customer: t.Optional(t.String()),
-});
-
-export type SessionCookie = Static<typeof SessionCookie>;
-
 // ─── Params ────────────────────────────────────────────────────────────────────
 
 export const WorkspaceParams = t.Object({

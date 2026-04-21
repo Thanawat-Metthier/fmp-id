@@ -1,5 +1,4 @@
 import config from "@/config/config";
-import { SelectUserSchema } from "@/db/schema/core";
 import { log } from "@/libs/logger.lib";
 import RedisService from "@/libs/redis.lib";
 import { User } from "@/modules/users/users.model";

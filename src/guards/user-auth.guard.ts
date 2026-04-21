@@ -11,6 +11,5 @@ export const userAuthGuard = async ({ cookie }: { cookie: Record<string, Cookie<
   if (roleCode !== 'U') return;
 
   // Session is fully valid, redirect to the frontend.
-  const frontendUrl = config.frontendCallbackUrl.replace('/callback', '');
-  return redirect(frontendUrl, 302);
+  return redirect(config.frontendCallbackUrl, 302);
 };

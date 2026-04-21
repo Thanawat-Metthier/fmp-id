@@ -1,5 +1,5 @@
 import { config } from '@/config/config';
-import { appRoutes } from '@/modules';
+import { appRoutes } from '@/modules/index.route';
 import { html } from '@elysiajs/html';
 import { Elysia } from 'elysia';
 
